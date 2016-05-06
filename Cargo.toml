@@ -1,0 +1,11 @@
+[package]
+name = "sudoku"
+version = "0.1.0"
+authors = ["davidcashm <davidnoahcashman@gmail.com>"]
+
+[[bin]]
+name = "foofoo"
+path = "src/main.rs"
+
+[dependencies]
+time = "*"
