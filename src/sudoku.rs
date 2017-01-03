@@ -67,7 +67,7 @@ impl Board {
 
    // Assign value at pos, and return true if assignment was successful.
    // Note that board is not restored on failure.
-   fn assign(&mut self, pos : usize, val : usize) -> bool {
+   fn try_assign(&mut self, pos : usize, val : usize) -> bool {
       // Just eliminate all other values
       for i in 0..9 {
          if i != val && !self.eliminate(pos, i) {
@@ -170,7 +170,7 @@ impl Board {
          }
          else if n == 1 {
             // We can assign val at pos_found.
-            if !self.assign(pos_found, val) {
+            if !self.try_assign(pos_found, val) {
                return false;
             }
          }
@@ -199,7 +199,7 @@ impl Board {
                   for i in 0..9 {
                      if entry.e[i] {
                         let mut newboard = b.clone();
-                        if newboard.assign(pos, i) {
+                        if newboard.try_assign(pos, i) {
                               let result = Board::search(&Some(newboard));
                            if result.is_some() {
                               return result;
@@ -232,7 +232,7 @@ impl Board {
          let n = result.unwrap() as usize;
          
          if n != 0 {
-            let result = b.assign(i, n-1);
+            let result = b.try_assign(i, n-1);
             // Should switch to return Optional<Board>
             assert!(result);
          }

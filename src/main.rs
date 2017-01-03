@@ -33,6 +33,7 @@ fn main() {
    for line in file.lines() {
       let l = line.unwrap();
       let start = time::precise_time_s();
+for _ in 0..1 {
       let b = sudoku::Board::from_string(&l);
       let mut delta = time::precise_time_s() - start;
       
@@ -53,6 +54,7 @@ fn main() {
       }
       total += delta;
       println!("Time: {}", delta);
+}
    }
    println!("Total time: {}", total);
 }

@@ -26,7 +26,7 @@ main = do
 
 -- Return a solved sudoku, if there is a solution
 solveSudoku :: T.Text -> T.Text
-solveSudoku problem = vecToText $ solve blankBoard problem
+solveSudoku problem = displayBoard $ solve blankBoard problem
 
 solve :: Board -> T.Text -> Maybe Board
 solve board problem = let pairs = filter noDot (zip [0..80] (T.unpack problem)) in do
@@ -103,26 +103,14 @@ boxes idx = [starti + i + 9*(startj + j) | i <- [0..2], j <- [0..2]]
                     starti = x - x `mod` 3 
                     startj = y - y `mod` 3
 
-   
-hasListWithMultipleDigits :: [[Char]] -> Bool
-hasListWithMultipleDigits values =
-   any (\l -> (head l /= '.' && length l > 1)) values 
-
-textToVec :: T.Text -> V.Vector [Char]
-textToVec t = V.fromList $ map char2list (T.unpack t)
-
-char2list :: Char -> [Char]
-char2list c = if c == '.' then "123456789" else [c]
-
-vecToText :: Maybe Board -> T.Text
-vecToText (Just v) = T.pack $ L.intercalate "\n" $ map (L.intercalate " | ") list_of_lists
+displayBoard :: Maybe Board -> T.Text
+displayBoard (Just v) = T.pack $ L.intercalate "\n" $ map (L.intercalate " | ") list_of_lists
                        where list_of_lists = vecToLoL v
-vecToText Nothing = T.pack "No solution"
+displayBoard Nothing = T.pack "No solution"
 
 -- Convert vector to list of lists
 vecToLoL :: V.Vector [Char] -> [[[Char]]]
 vecToLoL v = [[v V.! (i+9*j) | i <- [0..8]] | j <- [0..8]]
-
 
 digits :: String
 digits = "123456789"
