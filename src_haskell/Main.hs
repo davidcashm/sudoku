@@ -46,16 +46,30 @@ assignVal :: Board -> (Int, Char) -> Maybe Board
 assignVal board (idx, val) = propagateConstraints (board V.// [(idx, [val])]) idx val
 
 propagateConstraints :: Board -> Int -> Char -> Maybe Board
-propagateConstraints board idx val = foldM (removeFromBoard val) board (neighboursOf idx)
+propagateConstraints board idx val = do
+  foldM (removeFromBoard val) board (neighboursOf idx)
 
 removeFromBoard :: Char -> Board -> Int -> Maybe Board
 removeFromBoard val board idx = let old_entry = board V.! idx in
   if (not $ elem val old_entry) then Just board
   else do
     let new_entry = L.delete val (board V.! idx)
-    case new_entry of [] -> Nothing
-                      [x] -> propagateConstraints (board V.// [(idx, new_entry)]) idx x
-                      _ -> return $ board V.//[(idx, new_entry)]
+    result <- case new_entry of []  -> Nothing
+                                [x] -> propagateConstraints (board V.// [(idx, new_entry)]) idx x
+                                _   -> return $ board V.//[(idx, new_entry)]
+    -- Once we've removed this value, see if the value we removed is now only
+    -- available once in our column, row or box
+    foldM (checkForOneOption val) result [rowOf idx, columnOf idx, boxOf idx]
+
+-- See if there val appears 0 or 1 times in idxs.  If 0, the board is illegal.
+-- If 1, then it must go in that location
+checkForOneOption :: Char -> Board -> [Int] -> Maybe Board
+checkForOneOption val board idxs = 
+  -- Get indices that contain the value
+  let entries = filter (\idx -> val `elem` (board V.! idx)) idxs in
+    case entries of [] -> Nothing
+                    [idx] -> assignVal board (idx, val)
+                    _ -> Just board
 
 computeNeighboursOf :: Int -> [Int]
 computeNeighboursOf idx = S.toList $ S.delete idx $ sameRow idx `S.union` sameColumn idx `S.union` sameBox idx
@@ -63,8 +77,21 @@ computeNeighboursOf idx = S.toList $ S.delete idx $ sameRow idx `S.union` sameCo
 allNeighbours :: HM.HashMap Int [Int]
 allNeighbours = HM.fromList $ map (\idx -> (idx, computeNeighboursOf idx)) [0..80]
 
+allRows :: HM.HashMap Int [Int]
+allRows = HM.fromList $ map (\idx -> (idx, S.toList $ sameRow idx)) [0..80]
+
+allColumns :: HM.HashMap Int [Int]
+allColumns = HM.fromList $ map (\idx -> (idx, S.toList $ sameColumn idx)) [0..80]
+
+allBoxes :: HM.HashMap Int [Int]
+allBoxes = HM.fromList $ map (\idx -> (idx, S.toList $ sameBox idx)) [0..80]
+
 neighboursOf :: Int -> [Int]
-neighboursOf idx = HM.lookupDefault [0..81] idx allNeighbours 
+neighboursOf idx = HM.lookupDefault [] idx allNeighbours 
+
+rowOf idx = HM.lookupDefault [] idx allRows
+columnOf idx = HM.lookupDefault [] idx allColumns
+boxOf idx = HM.lookupDefault [] idx allBoxes
 
 search :: Board -> Maybe Board
 search board = let result = bestSearchOption board in
