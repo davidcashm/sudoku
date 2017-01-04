@@ -10,8 +10,11 @@ import qualified Data.List as L
 import Control.Monad.ST
 import Control.Monad
 import System.Environment -- needed for getArgs
+import qualified Data.HashSet as S
+import qualified Data.HashMap.Strict as HM
 
 type Board = V.Vector [Char]
+type Neighbours = S.HashSet Int
 
 main :: IO ()
 main = do
@@ -54,8 +57,14 @@ removeFromBoard val board idx = let old_entry = board V.! idx in
                       [x] -> propagateConstraints (board V.// [(idx, new_entry)]) idx x
                       _ -> return $ board V.//[(idx, new_entry)]
 
+computeNeighboursOf :: Int -> [Int]
+computeNeighboursOf idx = S.toList $ S.delete idx $ sameRow idx `S.union` sameColumn idx `S.union` sameBox idx
+
+allNeighbours :: HM.HashMap Int [Int]
+allNeighbours = HM.fromList $ map (\idx -> (idx, computeNeighboursOf idx)) [0..80]
+
 neighboursOf :: Int -> [Int]
-neighboursOf idx = L.delete idx $ consecutives idx `L.union` offBy9 idx `L.union` boxes idx
+neighboursOf idx = HM.lookupDefault [0..81] idx allNeighbours 
 
 search :: Board -> Maybe Board
 search board = let result = bestSearchOption board in
@@ -86,18 +95,18 @@ bestSearchOption board = V.ifoldr maxfn Nothing board where
                         Just (prev_idx, prev_val) -> if (length val) < (length prev_val) then Just (idx,val) else prev_result
 
 -- Locations in the same row as idx
-consecutives :: Int -> [Int]
-consecutives idx = map (\i -> i + base_idx) [0..8]
+sameRow :: Int -> Neighbours
+sameRow idx = S.fromList $ map (\i -> i + base_idx) [0..8]
                     where base_idx = idx - (idx `mod` 9)
 
 -- Locations in the same column as idx
-offBy9 :: Int -> [Int]
-offBy9 idx = map (\i -> i*9 + base_idx) [0..8]
+sameColumn :: Int -> Neighbours
+sameColumn idx = S.fromList $ map (\i -> i*9 + base_idx) [0..8]
               where base_idx = idx `mod` 9
 
 -- Locations in the same box as idx
-boxes :: Int -> [Int]
-boxes idx = [starti + i + 9*(startj + j) | i <- [0..2], j <- [0..2]]
+sameBox :: Int -> Neighbours
+sameBox idx = S.fromList $ [starti + i + 9*(startj + j) | i <- [0..2], j <- [0..2]]
               where x = idx `mod` 9
                     y = idx `div` 9
                     starti = x - x `mod` 3 

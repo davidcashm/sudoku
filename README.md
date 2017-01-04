@@ -6,4 +6,4 @@ Debug: 2.2 s total for all "hard" puzzles
 Release: 0.23 s total 
 Python: 2.9 s total
 C++: 0.15 s total, optimization level -O3 (Mac OS compiler - Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
-Haskell: 15 seconds.  Optimization -O2.  Using only immutable data structures.
+Haskell: 5 seconds.  Optimization -O2.  Using only immutable data structures.
