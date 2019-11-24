@@ -1,6 +1,8 @@
 package sudoku
+import scala.collection.immutable.BitSet
 
-class Entry (s : Set[Int] = Set.range(1,10)) {
+// Represent an entry as a bit field
+class Entry (s : BitSet = BitSet(1,2,3,4,5,6,7,8,9) ) {
 
   def remove(x : Int): Entry = {
     new Entry(s - x)
@@ -32,6 +34,6 @@ class Entry (s : Set[Int] = Set.range(1,10)) {
 
 object Entry {
   def only(x : Int): Entry = {
-    new Entry(Set[Int]() + x)
+    new Entry(BitSet() + x)
   }
 }
